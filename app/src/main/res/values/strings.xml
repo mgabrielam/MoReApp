@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Registrar dolor</string>
+    <string name="send">Enviar</string>
+    <string name="cero">0</string>
+    <string name="increase">Aumentar</string>
+    <string name="name">Nombre</string>
+    <string name="rut">Rut</string>
+    <string name="login">Ingresar</string>
+</resources>
