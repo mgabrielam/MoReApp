@@ -1,4 +1,4 @@
-package com.example.juanenrique.wearableapp;
+package uc.edu.cl.olderapp;
 
 import android.content.Context;
 import android.content.Intent;
@@ -17,8 +17,9 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 
-public class FitApi {
+public class FitApi implements Serializable {
     private String TAG = FitApi.class.getSimpleName();
     private String url = "https://magister-server-app.herokuapp.com/api/v1";
 
@@ -30,10 +31,8 @@ public class FitApi {
             String rut,
             final Context context
     ) {
-
         RequestQueue queue = Volley.newRequestQueue(context);
         String painRecordURl = url + "/pain_records";
-
         JSONObject params = new JSONObject();
         JSONObject painRecordObject = new JSONObject();
         try {
@@ -46,24 +45,24 @@ public class FitApi {
         } catch (JSONException e) {
             Log.e(TAG, "unexpected JSON exception", e);
         }
-
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-            (Request.Method.POST, painRecordURl, params, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {}
-            }, new Response.ErrorListener() {
-
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    if (error.networkResponse == null) {
-                        Toast.makeText(
-                                context,
-                                "Falló la conexión a internet",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                (Request.Method.POST, painRecordURl, params, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
                     }
-                }
-            });
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        if (error.networkResponse == null) {
+                            Toast.makeText(
+                                    context,
+                                    "Falló la conexión a internet",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+                });
         queue.add(jsonObjectRequest);
     }
 
@@ -72,18 +71,16 @@ public class FitApi {
             Toast.makeText(context, "Ingrese rut y nombre", Toast.LENGTH_SHORT).show();
             return;
         }
-
         RequestQueue queue = Volley.newRequestQueue(context);
         String painRecordURl = url + "/users";
-
         JSONObject params = new JSONObject();
         JSONObject painRecordObject = new JSONObject();
         try {
             painRecordObject.put("name", name);
             painRecordObject.put("rut", rut);
             params.put("user", painRecordObject);
-        } catch (JSONException e) {}
-
+        } catch (JSONException e) {
+        }
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, painRecordURl, params, new Response.Listener<JSONObject>() {
 
@@ -128,24 +125,23 @@ public class FitApi {
     public void saveToken(String rut, String token, Context context) {
         RequestQueue queue = Volley.newRequestQueue(context);
         String saveTokenUrl = url + "/save_token";
-
         JSONObject params = new JSONObject();
         try {
             params.put("rut", rut);
             params.put("token", token);
-        } catch (JSONException e) {}
-
+        } catch (JSONException e) {
+        }
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, saveTokenUrl, params, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(TAG, "SEND TOKEN, response is: "+ response);
+                        Log.d(TAG, "SEND TOKEN, response is: " + response);
                     }
                 }, new Response.ErrorListener() {
-
                     @Override
-                    public void onErrorResponse(VolleyError error) {}
+                    public void onErrorResponse(VolleyError error) {
+                    }
                 });
         queue.add(jsonObjectRequest);
     }

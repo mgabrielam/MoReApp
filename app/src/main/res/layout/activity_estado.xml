@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_grey"
+    android:padding="@dimen/box_inset_layout_padding"
+    tools:context="uc.edu.cl.olderapp.EstadoActivity"
+    tools:deviceIds="wear">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/inner_frame_layout_padding"
+        android:textAlignment="center"
+        app:boxedEdges="all">
+
+        <ImageButton
+            android:id="@+id/imgEstado"
+            android:layout_width="135dp"
+            android:layout_height="90dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/normal" />
+
+        <TextView
+            android:id="@+id/txtDato"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:text="@string/hello_world" />
+
+        <ImageButton
+            android:id="@+id/btnAtras"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom"
+            android:fitsSystemWindows="true"
+            android:paddingTop="1dp"
+            android:src="@android:drawable/ic_input_delete" />
+    </LinearLayout>
+</androidx.wear.widget.BoxInsetLayout>

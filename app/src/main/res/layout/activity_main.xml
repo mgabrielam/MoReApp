@@ -1,25 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainview"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/holo_green_dark"
     android:padding="@dimen/box_inset_layout_padding"
-    tools:context=".MainActivity"
-    tools:deviceIds="wear"
-    android:id="@+id/mainview">
+    tools:context="uc.edu.cl.olderapp.MainActivity"
+    tools:deviceIds="wear">
 
     <RelativeLayout
+        android:id="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="8dp"
-        app:boxedEdges="all"
-        android:id="@+id/view">
+        android:padding="8dp">
 
-
-    <Button
+        <Button
             android:id="@+id/send_button"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="144dp"
@@ -32,6 +29,7 @@
             android:text="@string/cero"
             android:textAlignment="center"
             android:textSize="90sp"
-            android:translationZ="@dimen/screen_percentage_05" />
+            android:translationZ="@dimen/screen_percentage_05"
+            tools:ignore="RtlCompat" />
     </RelativeLayout>
 </LinearLayout>

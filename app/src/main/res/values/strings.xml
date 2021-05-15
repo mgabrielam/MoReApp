@@ -1,9 +1,12 @@
 <resources>
     <string name="app_name">Registrar dolor</string>
-    <string name="send">Enviar</string>
     <string name="cero">0</string>
-    <string name="increase">Aumentar</string>
     <string name="name">Nombre</string>
     <string name="rut">Rut</string>
-    <string name="login">Ingresar</string>
+    <string name="title_activity_estado">EstadoActivity</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
 </resources>
