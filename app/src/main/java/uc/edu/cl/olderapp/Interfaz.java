@@ -72,7 +72,6 @@ public class Interfaz extends WearableActivity {
             Notification notification = new NotificationCompat.Builder(context)
                     .setDefaults(Notification.DEFAULT_ALL)
                     .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000, 1000})
-                    .setContentText("Registro Dolor")
                     .build();
         }
     }
