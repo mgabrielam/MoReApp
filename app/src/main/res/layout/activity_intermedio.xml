@@ -44,4 +44,11 @@
         android:text="Estado actual"
         tools:layout_editor_absoluteX="135dp"
         tools:layout_editor_absoluteY="150dp" />
+
+    <TextView
+        android:id="@+id/txtEstadoBT"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Buscando ..."
+        android:textAlignment="center" />
 </LinearLayout>

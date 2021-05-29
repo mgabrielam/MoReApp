@@ -21,21 +21,14 @@ public class EstadoActivity extends WearableActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_estado);
         mTextView = (TextView) findViewById(R.id.txtDato);
-        btnAtras = (ImageButton) findViewById(R.id.btnAtras);
         btnImagen = (ImageButton) findViewById(R.id.imgEstado);
         datoSensor = (DatoSensor) getIntent().getSerializableExtra("DatoSensor");
+        datoSensor.setConteo(datoSensor.getConteo()+1);
         btnImagen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tipo = (tipo < 3) ? tipo + 1 : 1;
+                tipo ++;
                 procesarVista();
-            }
-        });
-        btnAtras.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent viewEstado = new Intent(EstadoActivity.this, Interfaz.class);
-                startActivity(viewEstado);
             }
         });
         procesarVista();
@@ -44,7 +37,7 @@ public class EstadoActivity extends WearableActivity {
 
     public void procesarVista() {
         if (tipo == 1) {
-            mTextView.setText(String.valueOf(datoSensor.getHeartRate()));
+            mTextView.setText("Ritmo Cardíaco: " + String.valueOf(datoSensor.getHeartRate()));
             if (datoSensor.getHeartRate() < 66)
                 btnImagen.setImageResource(R.drawable.excelente);
             else if (datoSensor.getHeartRate() < 74)
@@ -54,7 +47,7 @@ public class EstadoActivity extends WearableActivity {
             else
                 btnImagen.setImageResource(R.drawable.alterado);
         } else if (tipo == 2) {
-            mTextView.setText(String.valueOf(datoSensor.getPressure()));
+            mTextView.setText("Presión Arterial: " +String.valueOf(datoSensor.getPressure()));
             if (datoSensor.getPressure() <= 90)
                 btnImagen.setImageResource(R.drawable.normal90);
             else if (datoSensor.getPressure() <= 105)
@@ -69,9 +62,11 @@ public class EstadoActivity extends WearableActivity {
                 btnImagen.setImageResource(R.drawable.alta160);
             else
                 btnImagen.setImageResource(R.drawable.alta190);
-        } else {
+        } else if (tipo == 3){
             String texto = "NO ACTIVO BT";
-            if (datoSensor.isEstadoBT()) {
+            mTextView.setText(texto);
+            btnImagen.setImageResource(R.drawable.close_button);
+            if (datoSensor.getEstadoBT().equals("Conectado")) {
                 if (datoSensor.getPitch() > -55 && datoSensor.getPitch() < -8 && datoSensor.getRoll() > 44 && datoSensor.getRoll() < 65 && datoSensor.getYaw() > 160 && datoSensor.getYaw() < 272) {
                     texto = "SENTADO";
                     btnImagen.setImageResource(R.drawable.sentado);
@@ -89,10 +84,10 @@ public class EstadoActivity extends WearableActivity {
                     btnImagen.setImageResource(R.drawable.acostado);
                 }
                 mTextView.setText(texto);
-            } else {
-                mTextView.setText(texto);
-                btnImagen.setImageResource(R.drawable.close_button);
             }
+        } else {
+            finish();
+            super.onBackPressed();
         }
     }
 }

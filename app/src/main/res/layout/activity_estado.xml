@@ -31,13 +31,5 @@
             android:layout_gravity="center"
             android:text="@string/hello_world" />
 
-        <ImageButton
-            android:id="@+id/btnAtras"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_gravity="bottom"
-            android:fitsSystemWindows="true"
-            android:paddingTop="1dp"
-            android:src="@android:drawable/ic_input_delete" />
     </LinearLayout>
 </androidx.wear.widget.BoxInsetLayout>

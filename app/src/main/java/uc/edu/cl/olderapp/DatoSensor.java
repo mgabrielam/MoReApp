@@ -15,6 +15,8 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
@@ -50,6 +52,7 @@ public class DatoSensor implements ServiceConnection, Serializable {
     private float yaw;
     private float roll;
     private float pitch;
+    private int conteo;
     private String userId;
     private transient BtleService.LocalBinder serviceBinder;
     private transient SensorFusionBosch sensorFusion;
@@ -58,11 +61,13 @@ public class DatoSensor implements ServiceConnection, Serializable {
     private transient EulerAngles casted;
     private transient File file;
     private transient MetaWearBoard board;
-    private boolean estadoBT;
+    private String estadoBT = "Buscando ...";
+    private transient TextView txtEstadoBt;
 
-    public DatoSensor(Context context) {
+    public DatoSensor(Context context, TextView txtEstadoBt) {
         this.context = context;
-        estadoBT = false;
+        this.txtEstadoBt = txtEstadoBt;
+        conteo = 0;
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         mStorageRef = FirebaseStorage.getInstance("gs://magister-app-cb15e.appspot.com").getReference();
         context.getApplicationContext().bindService(new Intent(context, BtleService.class), this, Context.BIND_AUTO_CREATE);
@@ -102,13 +107,19 @@ public class DatoSensor implements ServiceConnection, Serializable {
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
         }, mLightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        if(!userId.equals("none")) {
+            crearArchivo();
+        }
+    }
+    public void crearArchivo(){
         String fecha = new SimpleDateFormat("dd-MM-yyyy").format(new Date())+"_";
-        file = new File("/data/data/uc.edu.cl.olderapp/files",  fecha+String.valueOf(userId) + ".csv");
+        file = new File("/data/data/uc.edu.cl.olderapp/files", fecha + String.valueOf(userId) + ".csv");
         if (!file.exists()) {
+            conteo = 0;
             try {
                 file.createNewFile();
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-                writer.append(String.format(Locale.US, "%s,%n", "Date, Pitch, Roll, Yaw, HeartRate, Pressure, Ligth, Pain").toString());
+                writer.append(String.format(Locale.US, "%s,%n", "Date, Pitch, Roll, Yaw, HeartRate, Pressure, Ligth, Pain, CountView").toString());
                 writer.close();
             } catch (IOException e) {
             }
@@ -123,7 +134,8 @@ public class DatoSensor implements ServiceConnection, Serializable {
             @Override
             public Task<Route> then(Task<Void> task) throws Exception {
                 Log.i("euler", "Conectado a " + MW_MAC_ADDRESS);
-                estadoBT = true;
+                estadoBT = "Conectado";
+                txtEstadoBt.setText(estadoBT);
                 sensorFusion = board.getModule(SensorFusionBosch.class);
                 sensorFusion.configure()
                         .mode(SensorFusionBosch.Mode.IMU_PLUS)
@@ -145,9 +157,9 @@ public class DatoSensor implements ServiceConnection, Serializable {
                                     setRoll(casted.roll());
                                     setYaw(casted.yaw());
                                     BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-                                    writer.append(String.format(Locale.US, "%s,%.3f,%.3f,%.3f,%d,%d,%d,%d,%n",
+                                    writer.append(String.format(Locale.US, "%s,%.3f,%.3f,%.3f,%d,%d,%d,%d,%d,%n",
                                             data.formattedTimestamp(),
-                                            casted.pitch(), casted.roll(), casted.yaw(), getHeartRate(), getPressure(), getLight(), getPainNumber()).toString());
+                                            casted.pitch(), casted.roll(), casted.yaw(), getHeartRate(), getPressure(), getLight(), getPainNumber(), getConteo()).toString());
                                     writer.close();
                                     try {
                                         Thread.sleep(3000);
@@ -171,12 +183,15 @@ public class DatoSensor implements ServiceConnection, Serializable {
             }
         });
     }
-
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        Log.i("euler", "Servicio iniciado");
-        serviceBinder = (BtleService.LocalBinder) service;
-        retrieveBoard("EA:51:34:53:9B:1A");
+        if(!estadoBT.equals("Conectado")){
+            Log.i("euler", "Servicio iniciado");
+            serviceBinder = (BtleService.LocalBinder) service;
+            estadoBT = "Buscando ...";
+            txtEstadoBt.setText(estadoBT);
+            retrieveBoard("EA:51:34:53:9B:1A");
+        }
     }
 
     public void guardarEnviarDatos() {
@@ -199,14 +214,6 @@ public class DatoSensor implements ServiceConnection, Serializable {
 
     public void setContext(Context context) {
         this.context = context;
-    }
-
-    public boolean isEstadoBT() {
-        return estadoBT;
-    }
-
-    public void setEstadoBT(boolean estadoBT) {
-        this.estadoBT = estadoBT;
     }
 
     public int getPainNumber() {
@@ -319,5 +326,21 @@ public class DatoSensor implements ServiceConnection, Serializable {
 
     public void setPitch(float pitch) {
         this.pitch = pitch;
+    }
+
+    public int getConteo() {
+        return conteo;
+    }
+
+    public void setConteo(int conteo) {
+        this.conteo = conteo;
+    }
+
+    public String getEstadoBT() {
+        return estadoBT;
+    }
+
+    public void setEstadoBT(String estadoBT) {
+        this.estadoBT = estadoBT;
     }
 }

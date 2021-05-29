@@ -42,10 +42,12 @@ public class MainActivity extends WearableActivity {
     private String TAG = MainActivity.class.getSimpleName();
     private FitApi fitApi = new FitApi();
     private Timer timer;
+    MainActivity actual;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        actual = this;
         datoSensor = (DatoSensor) getIntent().getSerializableExtra("DatoSensor");
         Runnable runnable = new Runnable() {
             @RequiresApi(api = Build.VERSION_CODES.O)
@@ -109,8 +111,7 @@ public class MainActivity extends WearableActivity {
                                 );
                                 datoSensor.setPainNumber(0);
                                 sendButton.setText(String.format(Locale.getDefault(), "%d", datoSensor.getPainNumber()));
-                                Intent intent = new Intent(MainActivity.this, Interfaz.class);
-                                startActivity(intent);
+                                actual.onBackPressed();
                             }
                         });
                     }
@@ -118,6 +119,11 @@ public class MainActivity extends WearableActivity {
             }
         });
         setAmbientEnabled();
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 
     public void NumberDictation() {

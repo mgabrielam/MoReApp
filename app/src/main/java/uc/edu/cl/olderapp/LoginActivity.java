@@ -46,10 +46,8 @@ public class LoginActivity extends WearableActivity {
             public void onTextChanged(CharSequence c, int start, int before, int count) {
                 rut = c.toString();
             }
-
             public void beforeTextChanged(CharSequence c, int start, int count, int after) {
             }
-
             public void afterTextChanged(Editable c) {
             }
         });
