@@ -23,7 +23,7 @@ public class EstadoActivity extends WearableActivity {
         mTextView = (TextView) findViewById(R.id.txtDato);
         btnImagen = (ImageButton) findViewById(R.id.imgEstado);
         datoSensor = (DatoSensor) getIntent().getSerializableExtra("DatoSensor");
-        datoSensor.setConteo(datoSensor.getConteo()+1);
+        datoSensor.setConteo(1);
         btnImagen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -47,18 +47,18 @@ public class EstadoActivity extends WearableActivity {
             else
                 btnImagen.setImageResource(R.drawable.alterado);
         } else if (tipo == 2) {
-            mTextView.setText("Presión Arterial: " +String.valueOf(datoSensor.getPressure()));
-            if (datoSensor.getPressure() <= 90)
+            mTextView.setText("Pasos: " +String.valueOf(datoSensor.getPasos()));
+            if (datoSensor.getPasos() <= 900)
                 btnImagen.setImageResource(R.drawable.normal90);
-            else if (datoSensor.getPressure() <= 105)
+            else if (datoSensor.getPasos() <= 1005)
                 btnImagen.setImageResource(R.drawable.normal105);
-            else if (datoSensor.getPressure() <= 120)
+            else if (datoSensor.getPasos() <= 1200)
                 btnImagen.setImageResource(R.drawable.normal120);
-            else if (datoSensor.getPressure() <= 130)
+            else if (datoSensor.getPasos() <= 1300)
                 btnImagen.setImageResource(R.drawable.elevada130);
-            else if (datoSensor.getPressure() <= 140)
+            else if (datoSensor.getPasos() <= 1400)
                 btnImagen.setImageResource(R.drawable.elevada140);
-            else if (datoSensor.getPressure() <= 160)
+            else if (datoSensor.getPasos() <= 1600)
                 btnImagen.setImageResource(R.drawable.alta160);
             else
                 btnImagen.setImageResource(R.drawable.alta190);

@@ -10,14 +10,26 @@ import android.os.Handler;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import uc.edu.cl.olderapp.R;
+
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessOptions;
+import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.io.IOException;
@@ -120,6 +132,7 @@ public class MainActivity extends WearableActivity {
         });
         setAmbientEnabled();
     }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -199,4 +212,5 @@ public class MainActivity extends WearableActivity {
         mainview.setBackgroundColor(Color.parseColor("#31F113"));
         updateUI();
     }
+
 }

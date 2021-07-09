@@ -1,5 +1,6 @@
 package uc.edu.cl.olderapp;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
@@ -12,12 +13,30 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
+import android.net.sip.SipSession;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessOptions;
+import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataSource;
+import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.fitness.request.DataReadRequest;
+import com.google.android.gms.fitness.result.DailyTotalResult;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -31,14 +50,23 @@ import com.mbientlab.metawear.builder.RouteComponent;
 import com.mbientlab.metawear.data.EulerAngles;
 import com.mbientlab.metawear.module.SensorFusionBosch;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import bolts.Continuation;
 import bolts.Task;
@@ -52,7 +80,8 @@ public class DatoSensor implements ServiceConnection, Serializable {
     private float yaw;
     private float roll;
     private float pitch;
-    private int conteo;
+    private int pasos = 0;
+    private int conteo = 0;
     private String userId;
     private transient BtleService.LocalBinder serviceBinder;
     private transient SensorFusionBosch sensorFusion;
@@ -64,25 +93,32 @@ public class DatoSensor implements ServiceConnection, Serializable {
     private String estadoBT = "Buscando ...";
     private transient TextView txtEstadoBt;
 
-    public DatoSensor(Context context, TextView txtEstadoBt) {
+    public DatoSensor(Context context, TextView txtEstadoBt)  {
         this.context = context;
         this.txtEstadoBt = txtEstadoBt;
-        conteo = 0;
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         mStorageRef = FirebaseStorage.getInstance("gs://magister-app-cb15e.appspot.com").getReference();
-        context.getApplicationContext().bindService(new Intent(context, BtleService.class), this, Context.BIND_AUTO_CREATE);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         userId = prefs.getString("USER_ID", "none");
         SensorManager mSensorManager = ((SensorManager) context.getSystemService(Context.SENSOR_SERVICE));
         Sensor mPressureSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         Sensor mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
         Sensor mLightSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        Sensor pasoSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        mSensorManager.registerListener(new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                pasos = (int) event.values[0];
+            }
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i) {
+            }
+        }, pasoSensor, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 pressure = (int) event.values[0];
             }
-
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
@@ -92,7 +128,6 @@ public class DatoSensor implements ServiceConnection, Serializable {
             public void onSensorChanged(SensorEvent event) {
                 heartRate = (int) event.values[0];
             }
-
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
@@ -102,7 +137,6 @@ public class DatoSensor implements ServiceConnection, Serializable {
             public void onSensorChanged(SensorEvent event) {
                 light = (int) event.values[0];
             }
-
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
@@ -110,16 +144,17 @@ public class DatoSensor implements ServiceConnection, Serializable {
         if(!userId.equals("none")) {
             crearArchivo();
         }
+        context.getApplicationContext().bindService(new Intent(context, BtleService.class), this, Context.BIND_AUTO_CREATE);
     }
     public void crearArchivo(){
         String fecha = new SimpleDateFormat("dd-MM-yyyy").format(new Date())+"_";
         file = new File("/data/data/uc.edu.cl.olderapp/files", fecha + String.valueOf(userId) + ".csv");
         if (!file.exists()) {
-            conteo = 0;
             try {
+                conteo = pasos = 0;
                 file.createNewFile();
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-                writer.append(String.format(Locale.US, "%s,%n", "Date, Pitch, Roll, Yaw, HeartRate, Pressure, Ligth, Pain, CountView").toString());
+                writer.append(String.format(Locale.US, "%s,%n", "Date, Pitch, Roll, Yaw, HeartRate, Pressure, Ligth, Pain, Steps, CountView").toString());
                 writer.close();
             } catch (IOException e) {
             }
@@ -152,21 +187,12 @@ public class DatoSensor implements ServiceConnection, Serializable {
                             public void apply(Data data, Object... env) {
                                 casted = data.value(EulerAngles.class);
                                 Log.d("Datos", casted.toString());
+                                setPitch(casted.pitch());
+                                setRoll(casted.roll());
+                                setYaw(casted.yaw());
                                 try {
-                                    setPitch(casted.pitch());
-                                    setRoll(casted.roll());
-                                    setYaw(casted.yaw());
-                                    BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-                                    writer.append(String.format(Locale.US, "%s,%.3f,%.3f,%.3f,%d,%d,%d,%d,%d,%n",
-                                            data.formattedTimestamp(),
-                                            casted.pitch(), casted.roll(), casted.yaw(), getHeartRate(), getPressure(), getLight(), getPainNumber(), getConteo()).toString());
-                                    writer.close();
-                                    try {
-                                        Thread.sleep(3000);
-                                    } catch (InterruptedException e) {
-                                    }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                    Thread.sleep(3000);
+                                } catch (InterruptedException e) {
                                 }
                             }
                         });
@@ -197,8 +223,11 @@ public class DatoSensor implements ServiceConnection, Serializable {
     public void guardarEnviarDatos() {
         Log.i("Enviar", "Enviando Datos Firebase");
         String fecha = new SimpleDateFormat("dd-MM-yyyy").format(new Date())+"_";
-        Uri f = Uri.fromFile(new File("/data/data/uc.edu.cl.olderapp/files",fecha+ String.valueOf(userId) + ".csv"));
-        mStorageRef.child(fecha+userId + ".csv").putFile(f);
+        File file = new File("/data/data/uc.edu.cl.olderapp/files",fecha+ String.valueOf(userId) + ".csv");
+        if(file.exists()) {
+            Uri f = Uri.fromFile(file);
+            mStorageRef.child(fecha + userId + ".csv").putFile(f);
+        }
     }
 
     @Override
@@ -333,6 +362,24 @@ public class DatoSensor implements ServiceConnection, Serializable {
     }
 
     public void setConteo(int conteo) {
+        String lastLine = "";
+        String line;
+        String fecha = new SimpleDateFormat("dd-MM-yyyy").format(new Date())+"_";
+        file = new File("/data/data/uc.edu.cl.olderapp/files", fecha + String.valueOf(userId) + ".csv");
+        try {
+            if (!file.exists()) {
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                while ((line = br.readLine()) != null) {
+                    lastLine = line;
+                }
+                int conteoFinal = Integer.parseInt(lastLine.split(",")[lastLine.split(",").length - 2]);
+                this.conteo = conteoFinal + conteo;
+            }
+        }catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         this.conteo = conteo;
     }
 
@@ -343,4 +390,31 @@ public class DatoSensor implements ServiceConnection, Serializable {
     public void setEstadoBT(String estadoBT) {
         this.estadoBT = estadoBT;
     }
+
+    public int getPasos() {
+        return pasos;
+    }
+
+    public void setPasos(int pasos) {
+        this.pasos = pasos;
+    }
+
+    public void onSensorChanged(SensorEvent event) {
+        Log.i("PASOS", ""+getPasos());
+        if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
+            setPasos((int)event.values[0]);
+            Date d = new Date();
+            DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.mmm'Z'");
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+                writer.append(String.format(Locale.US, "%s,%.3f,%.3f,%.3f,%d,%d,%d,%d,%d,%d,%n",
+                        f.format(d),
+                        casted.pitch(), casted.roll(), casted.yaw(), getHeartRate(), getPressure(), getLight(), getPainNumber(), getPasos(), getConteo()).toString());
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }

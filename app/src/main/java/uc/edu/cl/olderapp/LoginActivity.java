@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,10 +21,12 @@ public class LoginActivity extends WearableActivity {
     private FitApi fitApi = new FitApi();
     private String name = "";
     private String rut = "";
+    private LoginActivity actual;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        actual = this;
         setContentView(R.layout.login);
         ActivityCompat.requestPermissions(
                 this,
@@ -55,9 +58,13 @@ public class LoginActivity extends WearableActivity {
             @Override
             public void onClick(View view) {
                 fitApi.createUser(name, rut, getApplicationContext());
-                Intent viewEstado = new Intent(LoginActivity.this, Interfaz.class);
-                startActivity(viewEstado);
+                actual.onBackPressed();
             }
         });
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }
