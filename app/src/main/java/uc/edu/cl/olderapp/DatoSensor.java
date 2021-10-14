@@ -81,7 +81,7 @@ public class DatoSensor implements ServiceConnection, Serializable {
     private float roll;
     private float pitch;
     private int pasos = 0;
-    private int conteo = 0;
+    private int conteo;
     private String userId;
     private transient BtleService.LocalBinder serviceBinder;
     private transient SensorFusionBosch sensorFusion;
@@ -92,14 +92,16 @@ public class DatoSensor implements ServiceConnection, Serializable {
     private transient MetaWearBoard board;
     private String estadoBT = "Buscando ...";
     private transient TextView txtEstadoBt;
+    private  transient SharedPreferences prefs;
 
     public DatoSensor(Context context, TextView txtEstadoBt)  {
         this.context = context;
         this.txtEstadoBt = txtEstadoBt;
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         mStorageRef = FirebaseStorage.getInstance("gs://magister-app-cb15e.appspot.com").getReference();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        prefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         userId = prefs.getString("USER_ID", "none");
+        conteo = Integer.parseInt(prefs.getString("CONTEO", "0"));
         SensorManager mSensorManager = ((SensorManager) context.getSystemService(Context.SENSOR_SERVICE));
         Sensor mPressureSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         Sensor mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
@@ -151,7 +153,6 @@ public class DatoSensor implements ServiceConnection, Serializable {
         file = new File("/data/data/uc.edu.cl.olderapp/files", fecha + String.valueOf(userId) + ".csv");
         if (!file.exists()) {
             try {
-                conteo = pasos = 0;
                 file.createNewFile();
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
                 writer.append(String.format(Locale.US, "%s,%n", "Date, Pitch, Roll, Yaw, HeartRate, Pressure, Ligth, Pain, Steps, CountView").toString());
@@ -186,10 +187,10 @@ public class DatoSensor implements ServiceConnection, Serializable {
                             @Override
                             public void apply(Data data, Object... env) {
                                 casted = data.value(EulerAngles.class);
-                                Log.d("Datos", casted.toString());
                                 setPitch(casted.pitch());
                                 setRoll(casted.roll());
                                 setYaw(casted.yaw());
+                                crearRegistro();
                                 try {
                                     Thread.sleep(3000);
                                 } catch (InterruptedException e) {
@@ -362,25 +363,12 @@ public class DatoSensor implements ServiceConnection, Serializable {
     }
 
     public void setConteo(int conteo) {
-        String lastLine = "";
-        String line;
-        String fecha = new SimpleDateFormat("dd-MM-yyyy").format(new Date())+"_";
-        file = new File("/data/data/uc.edu.cl.olderapp/files", fecha + String.valueOf(userId) + ".csv");
-        try {
-            if (!file.exists()) {
-                BufferedReader br = new BufferedReader(new FileReader(file));
-                while ((line = br.readLine()) != null) {
-                    lastLine = line;
-                }
-                int conteoFinal = Integer.parseInt(lastLine.split(",")[lastLine.split(",").length - 2]);
-                this.conteo = conteoFinal + conteo;
-            }
-        }catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.conteo = conteo;
+       this.conteo = conteo;
+       if (prefs != null) {
+           SharedPreferences.Editor editor = prefs.edit();
+           editor.putString("CONTEO", "" + this.conteo);
+           editor.apply();
+       }
     }
 
     public String getEstadoBT() {
@@ -394,27 +382,26 @@ public class DatoSensor implements ServiceConnection, Serializable {
     public int getPasos() {
         return pasos;
     }
-
     public void setPasos(int pasos) {
         this.pasos = pasos;
     }
-
-    public void onSensorChanged(SensorEvent event) {
-        Log.i("PASOS", ""+getPasos());
-        if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
-            setPasos((int)event.values[0]);
+    public void crearRegistro(){
+        if(file == null){
+            crearArchivo();
+        }
+        if (!file.exists()){
+            crearArchivo();
+        }
+        DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.mmm'Z'");
+        try {
             Date d = new Date();
-            DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.mmm'Z'");
-            try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-                writer.append(String.format(Locale.US, "%s,%.3f,%.3f,%.3f,%d,%d,%d,%d,%d,%d,%n",
-                        f.format(d),
-                        casted.pitch(), casted.roll(), casted.yaw(), getHeartRate(), getPressure(), getLight(), getPainNumber(), getPasos(), getConteo()).toString());
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+            writer.append(String.format(Locale.US, "%s,%.3f,%.3f,%.3f,%d,%d,%d,%d,%d,%d,%n",
+                    f.format(d),
+                    getPitch(), getRoll(), getYaw(), getHeartRate(), getPressure(), getLight(), getPainNumber(), getPasos(), getConteo()).toString());
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
-
 }

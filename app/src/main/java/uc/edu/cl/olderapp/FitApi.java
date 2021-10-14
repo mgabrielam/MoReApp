@@ -89,8 +89,8 @@ public class FitApi implements Serializable {
                         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
                         SharedPreferences.Editor editor = prefs.edit();
                         editor.putString("USER_ID", rut);
+                        editor.putString("CONTEO", "0");
                         editor.apply();
-
                         // TODO: make transition on Activity, waiting this response
                         Intent intent = new Intent(context, Interfaz.class);
                         context.startActivity(intent);

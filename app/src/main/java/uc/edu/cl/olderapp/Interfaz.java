@@ -56,15 +56,17 @@ public class Interfaz extends WearableActivity {
         txtEstadoBt = (TextView) findViewById(R.id.txtEstadoBT);
         dolor = findViewById(R.id.dolor);
         estado = findViewById(R.id.btnEstado);
-        GoogleSignInOptions gso = new GoogleSignInOptions
-                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("899270739919-bje7uu9spfbghre7luofp95a2s3h3egm.apps.googleusercontent.com")
-                .requestEmail()
-                .build();
-        cliente = GoogleSignIn.getClient(this, gso);
+        if (GoogleSignIn.getLastSignedInAccount(this) == null) {
+            GoogleSignInOptions gso = new GoogleSignInOptions
+                    .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken("899270739919-bje7uu9spfbghre7luofp95a2s3h3egm.apps.googleusercontent.com")
+                    .requestEmail()
+                    .build();
+            cliente = GoogleSignIn.getClient(this, gso);
+            Intent signInIntent = cliente.getSignInIntent();
+            startActivityForResult(signInIntent, 1);
+        }
         datoSensor = new DatoSensor(this.getBaseContext(), txtEstadoBt);
-        Intent signInIntent = cliente.getSignInIntent();
-        startActivityForResult(signInIntent, 1);
         if (datoSensor.getUserId().equals("none")) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
@@ -75,6 +77,8 @@ public class Interfaz extends WearableActivity {
                     Intent intent = new Intent(Interfaz.this, EstadoActivity.class);
                     intent.putExtra("DatoSensor", datoSensor);
                     startActivity(intent);
+                    datoSensor.setConteo(datoSensor.getConteo()+1);
+                    datoSensor.crearRegistro();
                 }
             });
             dolor.setOnClickListener(new View.OnClickListener() {

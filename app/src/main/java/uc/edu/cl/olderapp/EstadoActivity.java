@@ -1,7 +1,9 @@
 package uc.edu.cl.olderapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -23,7 +25,6 @@ public class EstadoActivity extends WearableActivity {
         mTextView = (TextView) findViewById(R.id.txtDato);
         btnImagen = (ImageButton) findViewById(R.id.imgEstado);
         datoSensor = (DatoSensor) getIntent().getSerializableExtra("DatoSensor");
-        datoSensor.setConteo(1);
         btnImagen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

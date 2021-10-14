@@ -121,7 +121,7 @@ public class MainActivity extends WearableActivity {
                                         datoSensor.getUserId(),
                                         getApplicationContext()
                                 );
-                                datoSensor.setPainNumber(0);
+                                datoSensor.crearRegistro();
                                 sendButton.setText(String.format(Locale.getDefault(), "%d", datoSensor.getPainNumber()));
                                 actual.onBackPressed();
                             }
